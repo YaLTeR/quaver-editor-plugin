@@ -6,6 +6,8 @@ function draw()
     random_small_shift()
     imgui.Separator()
     shift()
+    imgui.Separator()
+    find_anchors()
 
     imgui.End()
 end
@@ -145,4 +147,76 @@ function shift()
     
     actions.PlaceHitObjectBatch(new_notes)
     actions.SetHitObjectSelection(new_notes)
+end
+
+function find_anchors()
+    imgui.Text("Find Anchors")
+    
+    local max_snap = get("max_snap", 2)
+    _, max_snap = imgui.SliderInt("Maximum snap", max_snap, 1, 16, "1/%d")
+    set("max_snap", max_snap)
+    
+    local min_note_count = get("min_note_count", 3)
+    _, min_note_count = imgui.SliderInt("Minimum note count", min_note_count, 2, 6)
+    set("min_note_count", min_note_count)
+    
+    local find
+    if #state.SelectedHitObjects == 0 then
+        imgui.TextColored(RED, "No objects selected.")
+    else
+        find = imgui.Button("Find")
+    end
+    
+    local anchors = get("anchors", {})
+    for _, anchor in pairs(anchors) do
+        if imgui.Button(anchor.go_to:gsub(",.+", "")) then
+            actions.GoToObjects(anchor.go_to)
+        end
+        
+        imgui.SameLine()
+        imgui.Text(" - " .. anchor.count .. " notes")
+    end
+    
+    if not find then
+        return
+    end
+    
+    anchors = {}
+    
+    local function is_anchor(prev, next)
+        local bpm = map.GetTimingPointAt(prev).Bpm
+        local limit = 60000 / bpm / max_snap + 1
+        return next - prev <= limit
+    end
+    
+    local notes = {}
+    for _, note in pairs(state.SelectedHitObjects) do
+        if notes[note.Lane] and is_anchor(notes[note.Lane][#notes[note.Lane]].StartTime, note.StartTime) then
+            table.insert(notes[note.Lane], note)
+        else
+            if notes[note.Lane] and #notes[note.Lane] >= min_note_count then
+                local go_to = ""
+                for _, anchor_note in pairs(notes[note.Lane]) do
+                    go_to = go_to .. "," .. anchor_note.StartTime .. "|" .. anchor_note.Lane
+                end
+                
+                table.insert(anchors, { go_to = go_to:sub(2), count = #notes[note.Lane] })
+            end
+            
+            notes[note.Lane] = {note}
+        end
+    end
+    
+    for _, lane_notes in pairs(notes) do
+        if #lane_notes >= min_note_count then
+            local go_to = ""
+            for _, anchor_note in pairs(lane_notes) do
+                go_to = go_to .. "," .. anchor_note.StartTime .. "|" .. anchor_note.Lane
+            end
+            
+            table.insert(anchors, { go_to = go_to:sub(2), count = #lane_notes })
+        end
+    end
+    
+    set("anchors", anchors)
 end
