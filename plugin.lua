@@ -61,11 +61,29 @@ function shift()
     end
     
     local lanes
-    if imgui.Button("Left")   then lanes = {1, 2, 3, 4, 5, 6, 7} end
+    if imgui.Button("Left") then
+        if map.Mode == game_mode.Keys4 then
+            lanes = {1, 2, 3, 4}
+        elseif map.Mode == game_mode.Keys7 then
+            lanes = {1, 2, 3, 4, 5, 6, 7}
+        end
+    end
     imgui.SameLine()
-    if imgui.Button("Center") then lanes = {4, 5, 3, 6, 2, 7, 1} end
+    if imgui.Button("Center") then
+        if map.Mode == game_mode.Keys4 then
+            lanes = {2, 3, 4, 1}
+        elseif map.Mode == game_mode.Keys7 then
+            lanes = {4, 5, 3, 6, 2, 7, 1}
+        end
+    end
     imgui.SameLine()
-    if imgui.Button("Right")  then lanes = {7, 6, 5, 4, 3, 2, 1} end
+    if imgui.Button("Right") then
+        if map.Mode == game_mode.Keys4 then
+            lanes = {4, 3, 2, 1}
+        elseif map.Mode == game_mode.Keys7 then
+            lanes = {7, 6, 5, 4, 3, 2, 1}
+        end
+    end
     if not lanes then
         return
     end
