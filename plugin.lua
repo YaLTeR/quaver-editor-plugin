@@ -44,7 +44,7 @@ function random_small_shift()
             end_time = end_time + math.random() * max_shift
         end
 
-        table.insert(new_notes, utils.CreateHitObject(start_time, note.Lane, end_time, note.HitSound))
+        table.insert(new_notes, utils.CreateHitObject(start_time, note.Lane, end_time, note.HitSound, note.EditorLayer))
     end
     
     actions.RemoveHitObjectBatch(old_notes)
@@ -121,7 +121,7 @@ function shift()
         
         -- Could only be false if there are overlaps.
         if lane then
-            table.insert(new_notes, utils.CreateHitObject(note.StartTime, lane, note.EndTime, note.HitSound))
+            table.insert(new_notes, utils.CreateHitObject(note.StartTime, lane, note.EndTime, note.HitSound, note.EditorLayer))
         end
     end
     
